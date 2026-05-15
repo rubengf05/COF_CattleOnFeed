@@ -62,7 +62,6 @@ const NASS_KEY = 'EB7D3956-F3E0-3023-A6E7-602F604D4B67';
   .lline{width:20px;height:2px;flex-shrink:0;}
   .ldash{width:20px;height:0;border-top:2px dashed;flex-shrink:0;}
 
-  /* ── FÓRMULA INLINE (dentro de la card del gráfico) ── */
   .formula-inline{
     display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;
     font-family:var(--mono);font-size:10px;
@@ -80,12 +79,6 @@ const NASS_KEY = 'EB7D3956-F3E0-3023-A6E7-602F604D4B67';
   .fi-amber{color:var(--amber);}
   .fi-purple{color:var(--purple);}
   .fi-sep{color:var(--border2);margin:0 2px;}
-  .f-label{color:var(--muted);font-size:11px;}
-  .f-green{color:var(--green);}
-  .f-blue{color:var(--blue);}
-  .f-red{color:var(--red);}
-  .f-amber{color:var(--amber);}
-  .f-purple{color:var(--purple);}
 
   .notes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;animation:fu .4s ease .22s both;}
   .note{background:var(--surface);border:1px solid var(--border);border-left:3px solid transparent;padding:13px 15px;}
@@ -101,7 +94,7 @@ const NASS_KEY = 'EB7D3956-F3E0-3023-A6E7-602F604D4B67';
   @media(max-width:700px){
     .main{padding:20px 16px 40px;} .header{padding:0 16px;}
     .metrics{grid-template-columns:1fr 1fr;} .notes{grid-template-columns:1fr;}
-    .hero-title{font-size:20px;} .formula-params{grid-template-columns:1fr;}
+    .hero-title{font-size:20px;}
   }
 </style>
 </head>
@@ -266,54 +259,40 @@ const OTHER_FEB26 =   45; // K cab. estimado
 const years = [2021, 2022, 2023, 2024, 2025];
 
 function seasonalRatio(histData, febIdx = 1) {
-  // ratio(mes) = media[ histData[año][mes] / histData[año][feb] ] sobre todos los años
   return MONTHS.map((_, m) => {
     const ratios = years.map(y => histData[y][m] / histData[y][febIdx]);
     return ratios.reduce((a, b) => a + b, 0) / ratios.length;
   });
 }
 
-const kPlace = seasonalRatio(histPlacements); // ratio placements vs feb
-const kMkt   = seasonalRatio(histMarketings); // ratio marketings vs feb
-const kOther = kPlace.map(() => 1.0);         // other dispositions ~ misma estacionalidad que placements
+const kPlace = seasonalRatio(histPlacements); 
+const kMkt   = seasonalRatio(histMarketings); 
+const kOther = kPlace.map(() => 1.0);         
 
 // ── PROYECTAR ABR–DIC (índices 3..11)
-// Inv(m+1) = Inv(m) + Place(m) - Mkt(m) - Other(m)
-// Punto de partida: Inv(Mar 2026) = 11549
-
 const proj2026 = new Array(12).fill(null);
-proj2026[0] = real2026[0]; // Ene real
-proj2026[1] = real2026[1]; // Feb real
-proj2026[2] = real2026[2]; // Mar real
-
-// Para la proyección usamos el inventario del mes anterior + flujos proyectados del mes
-// La ecuación USDA: Inv(m+1) = Inv(m) + Place(m) - Mkt(m) - Other(m)
-// Proyectamos Place y Mkt de Abr en adelante con los ratios
+proj2026[0] = real2026[0]; 
+proj2026[1] = real2026[1]; 
+proj2026[2] = real2026[2]; 
 
 const projPlace = new Array(12).fill(null);
 const projMkt   = new Array(12).fill(null);
 const projOther = new Array(12).fill(null);
 const projNet   = new Array(12).fill(null);
 
-// Abr = mes 3, Mar = mes 2 → el inventario de Abr se calcula con los flujos de Mar
-// Flujos de Mar 2026: no tenemos reales → usamos ratios sobre Feb
 projPlace[2] = Math.round(PLACE_FEB26 * kPlace[2]);
 projMkt[2]   = Math.round(MKT_FEB26   * kMkt[2]);
 projOther[2] = Math.round(OTHER_FEB26 * kOther[2]);
 
 for (let m = 3; m <= 11; m++) {
-  // Flujos del mes m (para llegar a Inv(m+1)):
   projPlace[m] = Math.round(PLACE_FEB26 * kPlace[m]);
   projMkt[m]   = Math.round(MKT_FEB26   * kMkt[m]);
   projOther[m] = Math.round(OTHER_FEB26 * kOther[m]);
   projNet[m]   = projPlace[m] - projMkt[m] - projOther[m];
-  // Inv del mes siguiente = Inv del mes actual + net de mes actual
-  // Aquí proyectamos el inventario del mes m usando los flujos del mes m-1
   projNet[m-1] = projPlace[m-1] - projMkt[m-1] - projOther[m-1];
   proj2026[m]  = proj2026[m-1] + projNet[m-1];
 }
 
-// Recalcular net para tabla
 for (let m = 2; m <= 11; m++) {
   projNet[m] = projPlace[m] - projMkt[m] - projOther[m];
 }
@@ -328,14 +307,11 @@ const histMean = MONTHS.map((_, m) => {
 const histMin = MONTHS.map((_, m) => Math.min(...years5.map(y => historical[y][m])));
 const histMax = MONTHS.map((_, m) => Math.max(...years5.map(y => historical[y][m])));
 
-// 2026 real (Ene–Mar) + null resto
 const series2026real = [...real2026, ...new Array(9).fill(null)];
-
-// 2026 proyección (desde Mar — punto de conexión)
 const series2026proj = [
   null, null,
-  real2026[2],      // Mar (conexión)
-  ...proj2026.slice(3), // Abr–Dic calculados
+  real2026[2],      
+  ...proj2026.slice(3), 
 ];
 
 // ── CHART
@@ -348,120 +324,32 @@ new Chart(document.getElementById('mainChart'), {
   data: {
     labels: MONTHS,
     datasets: [
-      {
-        label: 'Rango max',
-        data: histMax,
-        borderWidth: 0,
-        pointRadius: 0,
-        fill: '+1',
-        backgroundColor: 'rgba(139,148,158,0.12)',
-        tension: 0.4,
-        order: 20,
-      },
-      {
-        label: 'Rango min',
-        data: histMin,
-        borderWidth: 0,
-        pointRadius: 0,
-        fill: false,
-        tension: 0.4,
-        order: 21,
-      },
-      {
-        label: 'Media 2021–2025',
-        data: histMean,
-        borderColor: 'rgba(139,148,158,0.7)',
-        borderWidth: 1.5,
-        borderDash: [4, 3],
-        pointRadius: 0,
-        fill: false,
-        tension: 0.4,
-        order: 4,
-      },
-      {
-        label: '2025 real',
-        data: data2025,
-        borderColor: '#58a6ff',
-        borderWidth: 2,
-        pointRadius: 3,
-        pointBackgroundColor: '#58a6ff',
-        pointBorderColor: '#0a0c0f',
-        pointBorderWidth: 1,
-        fill: false,
-        tension: 0.4,
-        order: 3,
-      },
-      {
-        label: '2026 real',
-        data: series2026real,
-        borderColor: '#3fb950',
-        borderWidth: 2.5,
-        pointRadius: ctx => series2026real[ctx.dataIndex] !== null ? 5 : 0,
-        pointBackgroundColor: '#3fb950',
-        pointBorderColor: '#0a0c0f',
-        pointBorderWidth: 1.5,
-        fill: false,
-        tension: 0.4,
-        spanGaps: false,
-        order: 1,
-      },
-      {
-        label: '2026 proyección',
-        data: series2026proj,
-        borderColor: 'rgba(63,185,80,0.6)',
-        borderWidth: 2,
-        borderDash: [5, 4],
-        pointRadius: ctx => ctx.dataIndex > 2 && series2026proj[ctx.dataIndex] !== null ? 3 : 0,
-        pointBackgroundColor: 'rgba(63,185,80,0.6)',
-        pointBorderColor: '#0a0c0f',
-        pointBorderWidth: 1,
-        fill: false,
-        tension: 0.4,
-        spanGaps: false,
-        order: 2,
-      },
+      { label: 'Rango max', data: histMax, borderWidth: 0, pointRadius: 0, fill: '+1', backgroundColor: 'rgba(139,148,158,0.12)', tension: 0.4, order: 20 },
+      { label: 'Rango min', data: histMin, borderWidth: 0, pointRadius: 0, fill: false, tension: 0.4, order: 21 },
+      { label: 'Media 2021–2025', data: histMean, borderColor: 'rgba(139,148,158,0.7)', borderWidth: 1.5, borderDash: [4, 3], pointRadius: 0, fill: false, tension: 0.4, order: 4 },
+      { label: '2025 real', data: data2025, borderColor: '#58a6ff', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#58a6ff', pointBorderColor: '#0a0c0f', pointBorderWidth: 1, fill: false, tension: 0.4, order: 3 },
+      { label: '2026 real', data: series2026real, borderColor: '#3fb950', borderWidth: 2.5, pointRadius: ctx => series2026real[ctx.dataIndex] !== null ? 5 : 0, pointBackgroundColor: '#3fb950', pointBorderColor: '#0a0c0f', pointBorderWidth: 1.5, fill: false, tension: 0.4, spanGaps: false, order: 1 },
+      { label: '2026 proyección', data: series2026proj, borderColor: 'rgba(63,185,80,0.6)', borderWidth: 2, borderDash: [5, 4], pointRadius: ctx => ctx.dataIndex > 2 && series2026proj[ctx.dataIndex] !== null ? 3 : 0, pointBackgroundColor: 'rgba(63,185,80,0.6)', pointBorderColor: '#0a0c0f', pointBorderWidth: 1, fill: false, tension: 0.4, spanGaps: false, order: 2 },
     ]
   },
   options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
+    responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#1c2333',
-        borderColor: '#30363d',
-        borderWidth: 1,
-        padding: 12,
-        titleColor: '#e6edf3',
-        bodyColor: '#8b949e',
-        titleFont: { family: MONO, size: 11, weight: '600' },
-        bodyFont: { family: MONO, size: 11 },
-        filter: item => {
-          const skip = ['Rango max','Rango min'];
-          return !skip.includes(item.dataset.label) && item.raw !== null;
-        },
+        backgroundColor: '#1c2333', borderColor: '#30363d', borderWidth: 1, padding: 12, titleColor: '#e6edf3', bodyColor: '#8b949e', titleFont: { family: MONO, size: 11, weight: '600' }, bodyFont: { family: MONO, size: 11 },
+        filter: item => { const skip = ['Rango max','Rango min']; return !skip.includes(item.dataset.label) && item.raw !== null; },
         callbacks: {
           label: ctx => {
             if (ctx.raw === null) return null;
             const v = (ctx.raw / 1000).toFixed(2) + 'M';
-            const map = {
-              'Media 2021–2025': `  Media hist.: ${v}`,
-              '2025 real':       `  2025: ${v}`,
-              '2026 real':       `  2026: ${v} ✓`,
-              '2026 proyección': `  2026 proy.: ${v}`,
-            };
+            const map = { 'Media 2021–2025': `  Media hist.: ${v}`, '2025 real': `  2025: ${v}`, '2026 real': `  2026: ${v} ✓`, '2026 proyección': `  2026 proy.: ${v}` };
             return map[ctx.dataset.label] ?? null;
           },
           afterBody: ctx => {
-            const meanVal = histMean[ctx[0].dataIndex];
-            const val25   = data2025[ctx[0].dataIndex];
-            const val26r  = series2026real[ctx[0].dataIndex];
-            const val26p  = series2026proj[ctx[0].dataIndex];
-            const val26   = val26r ?? val26p;
+            const meanVal = histMean[ctx[0].dataIndex], val25 = data2025[ctx[0].dataIndex], val26r = series2026real[ctx[0].dataIndex], val26p = series2026proj[ctx[0].dataIndex], val26 = val26r ?? val26p;
             if (!val26 || !meanVal) return [];
-            const vsMedia = ((val26-meanVal)/meanVal*100).toFixed(1);
-            const vs25    = val25 ? ((val26-val25)/val25*100).toFixed(1) : null;
+            const vsMedia = ((val26-meanVal)/meanVal*100).toFixed(1), vs25 = val25 ? ((val26-val25)/val25*100).toFixed(1) : null;
             const lines = [`  vs media: ${vsMedia>0?'+':''}${vsMedia}%`];
             if (vs25) lines.push(`  vs 2025: ${vs25>0?'+':''}${vs25}%`);
             return lines;
@@ -470,25 +358,14 @@ new Chart(document.getElementById('mainChart'), {
       }
     },
     scales: {
-      x: {
-        grid: { color: GRID },
-        ticks: { color: TICK, font: { size: 11 }, autoSkip: false, maxRotation: 0 },
-        border: { color: 'rgba(255,255,255,0.08)' }
-      },
-      y: {
-        grid: { color: GRID },
-        min: yMin,
-        max: yMax,
-        ticks: { callback: v => (v/1000).toFixed(1)+'M', stepSize: 100 },
-        border: { color: 'rgba(255,255,255,0.08)' }
-      }
+      x: { grid: { color: GRID }, ticks: { color: TICK, font: { size: 11 }, autoSkip: false, maxRotation: 0 }, border: { color: 'rgba(255,255,255,0.08)' } },
+      y: { grid: { color: GRID }, min: yMin, max: yMax, ticks: { callback: v => (v/1000).toFixed(1)+'M', stepSize: 100 }, border: { color: 'rgba(255,255,255,0.08)' } }
     }
   }
 });
 
 /* ═══════════════════════════════════════════════════════════════════════
    CAPA DE DATOS EN VIVO — USDA NASS Cattle on Feed
-   Actualiza automáticamente inventory, placements y marketings desde la API
    ═══════════════════════════════════════════════════════════════════════ */
 (async () => {
   const badge = document.getElementById('live-badge');
@@ -512,36 +389,22 @@ new Chart(document.getElementById('mainChart'), {
     badge.textContent = '⟳ descargando...';
     badge.style.color = 'var(--amber)';
     
-    // Obtener datos de Cattle on Feed de 2018-2026
-    // commodity_desc=CATTLE, class_desc=FEEDLOTS 1000+ HD, statisticcat_desc=INVENTORY
+    // CORRECCIÓN: Filtros directos por short_desc y agregación nacional
     const [invData, placeData, mktData] = await Promise.all([
       nass({
-        commodity_desc: 'CATTLE',
-        class_desc: 'FEEDLOTS 1000+ HD',
-        statisticcat_desc: 'INVENTORY',
-        unit_desc: 'HEAD',
-        freq_desc: 'MONTHLY',
-        reference_period_desc: 'FIRST OF MONTH',
-        year__GE: 2018,
-        format: 'JSON'
+        short_desc: 'CATTLE, ON FEED - INVENTORY',
+        agg_level_desc: 'NATIONAL',
+        year__GE: 2018
       }),
       nass({
-        commodity_desc: 'CATTLE',
-        class_desc: 'FEEDLOTS 1000+ HD',  
-        statisticcat_desc: 'PLACEMENTS',
-        unit_desc: 'HEAD',
-        freq_desc: 'MONTHLY',
-        year__GE: 2018,
-        format: 'JSON'
+        short_desc: 'CATTLE, ON FEED - PLACEMENTS',
+        agg_level_desc: 'NATIONAL',
+        year__GE: 2018
       }),
       nass({
-        commodity_desc: 'CATTLE',
-        class_desc: 'FEEDLOTS 1000+ HD',
-        statisticcat_desc: 'MARKETINGS',
-        unit_desc: 'HEAD',
-        freq_desc: 'MONTHLY',
-        year__GE: 2018,
-        format: 'JSON'
+        short_desc: 'CATTLE, ON FEED - MARKETINGS',
+        agg_level_desc: 'NATIONAL',
+        year__GE: 2018
       })
     ]);
     
@@ -549,13 +412,11 @@ new Chart(document.getElementById('mainChart'), {
       throw new Error('No se encontraron datos de inventario');
     }
     
-    // Procesar datos por año y mes
     function buildSeries(data) {
       const byYear = {};
       data.forEach(row => {
         const y = parseInt(row.year);
         const period = row.reference_period_desc || '';
-        // Extraer mes del period ("JAN", "FEB", etc. en el reference_period_desc)
         const monthMatch = period.match(/(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)/i);
         if (!monthMatch) return;
         const monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -563,7 +424,7 @@ new Chart(document.getElementById('mainChart'), {
         if (m === -1) return;
         
         if (!byYear[y]) byYear[y] = new Array(12).fill(null);
-        byYear[y][m] = Math.round(val(row) / 1000); // convertir a miles
+        byYear[y][m] = Math.round(val(row) / 1000); 
       });
       return byYear;
     }
@@ -572,21 +433,17 @@ new Chart(document.getElementById('mainChart'), {
     const placeByYear = buildSeries(placeData);
     const mktByYear = buildSeries(mktData);
     
-    // Actualizar datos históricos en el objeto `historical`
     Object.keys(invByYear).forEach(y => {
       if (parseInt(y) >= 2021 && parseInt(y) <= 2025) {
         historical[y] = invByYear[y];
       }
     });
     
-    // Actualizar datos 2026 reales
     if (invByYear[2026]) {
       const real = invByYear[2026].filter(v => v !== null);
-      // Actualizar la variable real2026
       real2026.length = 0;
       real2026.push(...real);
       
-      // Actualizar header con último mes disponible
       const lastMonthIdx = invByYear[2026].findIndex((v,i) => i > 0 && v === null) - 1;
       if (lastMonthIdx >= 0) {
         const monthName = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][lastMonthIdx];
@@ -594,8 +451,7 @@ new Chart(document.getElementById('mainChart'), {
       }
     }
     
-    // Actualizar métricas si hay datos de 2026
-    if (invByYear[2026] && invByYear[2026][2]) { // Marzo
+    if (invByYear[2026] && invByYear[2026][2]) { 
       const metrics = document.querySelectorAll('.metric');
       if (metrics[0]) {
         const marInv = invByYear[2026][2];
@@ -606,7 +462,6 @@ new Chart(document.getElementById('mainChart'), {
         metrics[0].querySelector('.mbadge').className = 'mbadge ' + (change >= 0 ? 'b-grn' : 'b-red');
       }
       
-      // Placements Feb 2026 (para cálculo de métricas)
       if (placeByYear[2026]?.[1] && metrics[1]) {
         const febPlace = placeByYear[2026][1];
         const febPlace25 = placeByYear[2025]?.[1] || 1550;
@@ -616,7 +471,6 @@ new Chart(document.getElementById('mainChart'), {
         metrics[1].querySelector('.mbadge').className = 'mbadge ' + (pctChange >= 0 ? 'b-grn' : 'b-red');
       }
       
-      // Marketings Feb 2026
       if (mktByYear[2026]?.[1] && metrics[2]) {
         const febMkt = mktByYear[2026][1];
         const febMkt25 = mktByYear[2025]?.[1] || 1620;
@@ -630,8 +484,6 @@ new Chart(document.getElementById('mainChart'), {
     badge.textContent = '✓ EN VIVO';
     badge.style.color = 'var(--green)';
     
-    // Recargar el gráfico con datos actualizados
-    // (el gráfico ya se dibujó con los datos estáticos originales, aquí solo actualizamos si es necesario)
     console.log('✅ Datos actualizados desde USDA NASS:', {
       inventory: Object.keys(invByYear),
       placements: Object.keys(placeByYear),
@@ -644,7 +496,6 @@ new Chart(document.getElementById('mainChart'), {
     badge.style.color = 'var(--red)';
   }
   
-  // Auto-refresh cada 6 horas (el reporte se publica mensualmente)
   setTimeout(() => location.reload(), 6 * 60 * 60 * 1000);
 })();
 </script>
