@@ -372,18 +372,20 @@ new Chart(document.getElementById('mainChart'), {
   const dataDate = document.getElementById('data-date');
   
   async function nass(params) {
-    const qs = new URLSearchParams({ key: NASS_KEY, format: 'JSON', ...params });
-    const res = await fetch('/nass-api?' + qs.toString());
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-    return json.data || [];
-  }
+  const base = 'https://quickstats.nass.usda.gov/api/api_GET/';
+  const qs = new URLSearchParams({ key: NASS_KEY, format: 'JSON', ...params });
+  const targetUrl = base + '?' + qs.toString();
   
-  function val(r) {
-    if (!r) return null;
-    const v = parseFloat(String(r.Value || r.value || '').replace(/,/g,''));
-    return isNaN(v) ? null : v;
-  }
+  // Proxy CORS público
+  const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl);
+  
+  const res = await fetch(proxyUrl);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  
+  const wrapper = await res.json();
+  const json = JSON.parse(wrapper.contents);
+  return json.data || [];
+  } 
   
   try {
     badge.textContent = '⟳ descargando...';
