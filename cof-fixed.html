@@ -384,28 +384,35 @@ new Chart(document.getElementById('mainChart'), {
     badge.style.color = 'var(--amber)';
     
     // CONSULTA 1: DATOS HISTÓRICOS 2018–2025 (para media histórica)
+    // commodity_desc debe ser "CATTLE, ON FEED" (no solo "CATTLE")
     const [invDataHist, placeDataHist, mktDataHist] = await Promise.all([
       nass({
-        commodity_desc: 'CATTLE',
+        source_desc: 'SURVEY',
+        commodity_desc: 'CATTLE, ON FEED',
         statisticcat_desc: 'INVENTORY',
         domain_desc: 'TOTAL',
         agg_level_desc: 'NATIONAL',
+        freq_desc: 'MONTHLY',
         year__GE: 2018,
         year__LE: 2025
       }),
       nass({
-        commodity_desc: 'CATTLE',
+        source_desc: 'SURVEY',
+        commodity_desc: 'CATTLE, ON FEED',
         statisticcat_desc: 'PLACEMENTS',
         domain_desc: 'TOTAL',
         agg_level_desc: 'NATIONAL',
+        freq_desc: 'MONTHLY',
         year__GE: 2018,
         year__LE: 2025
       }),
       nass({
-        commodity_desc: 'CATTLE',
+        source_desc: 'SURVEY',
+        commodity_desc: 'CATTLE, ON FEED',
         statisticcat_desc: 'MARKETINGS',
         domain_desc: 'TOTAL',
         agg_level_desc: 'NATIONAL',
+        freq_desc: 'MONTHLY',
         year__GE: 2018,
         year__LE: 2025
       })
@@ -414,24 +421,30 @@ new Chart(document.getElementById('mainChart'), {
     // CONSULTA 2: DATOS EN VIVO 2026 (tiempo real, solo año actual)
     const [invData2026, placeData2026, mktData2026] = await Promise.all([
       nass({
-        commodity_desc: 'CATTLE',
+        source_desc: 'SURVEY',
+        commodity_desc: 'CATTLE, ON FEED',
         statisticcat_desc: 'INVENTORY',
         domain_desc: 'TOTAL',
         agg_level_desc: 'NATIONAL',
+        freq_desc: 'MONTHLY',
         year: 2026
       }),
       nass({
-        commodity_desc: 'CATTLE',
+        source_desc: 'SURVEY',
+        commodity_desc: 'CATTLE, ON FEED',
         statisticcat_desc: 'PLACEMENTS',
         domain_desc: 'TOTAL',
         agg_level_desc: 'NATIONAL',
+        freq_desc: 'MONTHLY',
         year: 2026
       }),
       nass({
-        commodity_desc: 'CATTLE',
+        source_desc: 'SURVEY',
+        commodity_desc: 'CATTLE, ON FEED',
         statisticcat_desc: 'MARKETINGS',
         domain_desc: 'TOTAL',
         agg_level_desc: 'NATIONAL',
+        freq_desc: 'MONTHLY',
         year: 2026
       })
     ]);
