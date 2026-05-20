@@ -372,20 +372,12 @@ new Chart(document.getElementById('mainChart'), {
   const dataDate = document.getElementById('data-date');
   
   async function nass(params) {
-  const base = 'https://quickstats.nass.usda.gov/api/api_GET/';
   const qs = new URLSearchParams({ key: NASS_KEY, format: 'JSON', ...params });
-  const targetUrl = base + '?' + qs.toString();
-  
-  // Proxy CORS público
-  const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl);
-  
-  const res = await fetch(proxyUrl);
+  const res = await fetch('/nass-api?' + qs.toString());
   if (!res.ok) throw new Error('HTTP ' + res.status);
-  
-  const wrapper = await res.json();
-  const json = JSON.parse(wrapper.contents);
+  const json = await res.json();
   return json.data || [];
-  } 
+} 
   
   try {
     badge.textContent = '⟳ descargando...';
