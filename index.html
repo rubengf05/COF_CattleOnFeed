@@ -372,87 +372,44 @@ new Chart(document.getElementById('mainChart'), {
   const dataDate = document.getElementById('data-date');
   
   async function nass(params) {
-  const qs = new URLSearchParams({ key: NASS_KEY, format: 'JSON', ...params });
-  const url = '/nass-api?' + qs.toString();
-  const res = await fetch(url);
-  if (!res.ok) {
-    const errorBody = await res.text();
-    console.error('❌ NASS error', res.status, 'para', url);
-    console.error('   Respuesta:', errorBody);
-    throw new Error('HTTP ' + res.status + ' — ' + errorBody);
+    const qs = new URLSearchParams({ key: NASS_KEY, format: 'JSON', ...params });
+    const url = '/nass-api?' + qs.toString();
+    const res = await fetch(url);
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error('HTTP ' + res.status + ' — ' + body);
+    }
+    const json = await res.json();
+    return json.data || [];
   }
-  const json = await res.json();
-  return json.data || [];
-}
   
   try {
     badge.textContent = '⟳ descargando...';
     badge.style.color = 'var(--amber)';
     
     // CONSULTA 1: DATOS HISTÓRICOS 2018–2025 (para media histórica)
-    // commodity_desc debe ser "CATTLE, ON FEED" (no solo "CATTLE")
+    // commodity_desc=CATTLE + prodn_practice_desc=ON FEED
+    // domain_desc=CAPACITY + domaincat=1,000 OR MORE HEAD (feedlots ≥1000 cab.)
+    const COF_BASE = {
+      source_desc: 'SURVEY',
+      commodity_desc: 'CATTLE',
+      prodn_practice_desc: 'ON FEED',
+      domain_desc: 'CAPACITY',
+      domaincat_desc: 'CAPACITY: (1,000 OR MORE HEAD)',
+      agg_level_desc: 'NATIONAL'
+    };
+    
     const [invDataHist, placeDataHist, mktDataHist] = await Promise.all([
-      nass({
-        source_desc: 'SURVEY',
-        commodity_desc: 'CATTLE, ON FEED',
-        statisticcat_desc: 'INVENTORY',
-        domain_desc: 'TOTAL',
-        agg_level_desc: 'NATIONAL',
-        freq_desc: 'MONTHLY',
-        year__GE: 2018,
-        year__LE: 2025
-      }),
-      nass({
-        source_desc: 'SURVEY',
-        commodity_desc: 'CATTLE, ON FEED',
-        statisticcat_desc: 'PLACEMENTS',
-        domain_desc: 'TOTAL',
-        agg_level_desc: 'NATIONAL',
-        freq_desc: 'MONTHLY',
-        year__GE: 2018,
-        year__LE: 2025
-      }),
-      nass({
-        source_desc: 'SURVEY',
-        commodity_desc: 'CATTLE, ON FEED',
-        statisticcat_desc: 'MARKETINGS',
-        domain_desc: 'TOTAL',
-        agg_level_desc: 'NATIONAL',
-        freq_desc: 'MONTHLY',
-        year__GE: 2018,
-        year__LE: 2025
-      })
+      nass({ ...COF_BASE, statisticcat_desc: 'INVENTORY',  year__GE: 2018, year__LE: 2025 }),
+      nass({ ...COF_BASE, statisticcat_desc: 'PLACEMENTS', year__GE: 2018, year__LE: 2025 }),
+      nass({ ...COF_BASE, statisticcat_desc: 'MARKETINGS', year__GE: 2018, year__LE: 2025 })
     ]);
     
     // CONSULTA 2: DATOS EN VIVO 2026 (tiempo real, solo año actual)
     const [invData2026, placeData2026, mktData2026] = await Promise.all([
-      nass({
-        source_desc: 'SURVEY',
-        commodity_desc: 'CATTLE, ON FEED',
-        statisticcat_desc: 'INVENTORY',
-        domain_desc: 'TOTAL',
-        agg_level_desc: 'NATIONAL',
-        freq_desc: 'MONTHLY',
-        year: 2026
-      }),
-      nass({
-        source_desc: 'SURVEY',
-        commodity_desc: 'CATTLE, ON FEED',
-        statisticcat_desc: 'PLACEMENTS',
-        domain_desc: 'TOTAL',
-        agg_level_desc: 'NATIONAL',
-        freq_desc: 'MONTHLY',
-        year: 2026
-      }),
-      nass({
-        source_desc: 'SURVEY',
-        commodity_desc: 'CATTLE, ON FEED',
-        statisticcat_desc: 'MARKETINGS',
-        domain_desc: 'TOTAL',
-        agg_level_desc: 'NATIONAL',
-        freq_desc: 'MONTHLY',
-        year: 2026
-      })
+      nass({ ...COF_BASE, statisticcat_desc: 'INVENTORY',  year: 2026 }),
+      nass({ ...COF_BASE, statisticcat_desc: 'PLACEMENTS', year: 2026 }),
+      nass({ ...COF_BASE, statisticcat_desc: 'MARKETINGS', year: 2026 })
     ]);
     
     // Combinar: histórico + 2026
@@ -466,18 +423,24 @@ new Chart(document.getElementById('mainChart'), {
     
     function buildSeries(data) {
       const byYear = {};
+      const monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
       data.forEach(row => {
         const y = parseInt(row.year);
-        const period = row.reference_period_desc || '';
-        const monthMatch = period.match(/(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)/i);
+        const period = (row.reference_period_desc || '').toUpperCase();
+        
+        // Ignorar acumulados anuales — solo queremos datos mensuales
+        if (period === 'YEAR' || period === 'MARKETING YEAR') return;
+        
+        const monthMatch = period.match(/(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)/);
         if (!monthMatch) return;
-        const monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-        const m = monthNames.indexOf(monthMatch[0].toUpperCase());
+        const m = monthNames.indexOf(monthMatch[0]);
         if (m === -1) return;
         
+        const raw = (row.Value || '').replace(/,/g, '').trim();
+        if (raw === '' || raw === '(D)' || raw === '(NA)' || isNaN(raw)) return;
+        
         if (!byYear[y]) byYear[y] = new Array(12).fill(null);
-        const val = row.Value ? parseInt(row.Value.replace(/,/g, '')) : 0;
-        byYear[y][m] = Math.round(val / 1000); 
+        byYear[y][m] = Math.round(parseInt(raw) / 1000); // miles de cabezas
       });
       return byYear;
     }
