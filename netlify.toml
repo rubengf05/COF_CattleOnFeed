@@ -15,3 +15,8 @@
   to = "https://quickstats.nass.usda.gov/api/get_counts/"
   status = 200
   force = true
+[[redirects]]
+  from = "/nass-params"
+  to = "https://quickstats.nass.usda.gov/api/get_param_values/"
+  status = 200
+  force = true
