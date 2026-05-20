@@ -385,22 +385,28 @@ new Chart(document.getElementById('mainChart'), {
     
     // CORRECCIÓN: Filtros directos por short_desc y agregación nacional
     const [invData, placeData, mktData] = await Promise.all([
-      nass({
-        short_desc: 'CATTLE, ON FEED - INVENTORY',
-        agg_level_desc: 'NATIONAL',
-        year__GE: 2018
-      }),
-      nass({
-        short_desc: 'CATTLE, ON FEED - PLACEMENTS',
-        agg_level_desc: 'NATIONAL',
-        year__GE: 2018
-      }),
-      nass({
-        short_desc: 'CATTLE, ON FEED - MARKETINGS',
-        agg_level_desc: 'NATIONAL',
-        year__GE: 2018
-      })
-    ]);
+  nass({
+    commodity_desc: 'CATTLE',
+    statisticcat_desc: 'INVENTORY',
+    domain_desc: 'TOTAL',
+    agg_level_desc: 'NATIONAL',
+    year: new Date().getFullYear()
+  }),
+  nass({
+    commodity_desc: 'CATTLE',
+    statisticcat_desc: 'PLACEMENTS',
+    domain_desc: 'TOTAL',
+    agg_level_desc: 'NATIONAL',
+    year: new Date().getFullYear()
+  }),
+  nass({
+    commodity_desc: 'CATTLE',
+    statisticcat_desc: 'MARKETINGS',
+    domain_desc: 'TOTAL',
+    agg_level_desc: 'NATIONAL',
+    year: new Date().getFullYear()
+  })
+]);
     
     if (!invData.length) {
       throw new Error('No se encontraron datos de inventario');
