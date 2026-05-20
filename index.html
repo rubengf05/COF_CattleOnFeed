@@ -372,12 +372,18 @@ new Chart(document.getElementById('mainChart'), {
   const dataDate = document.getElementById('data-date');
   
   async function nass(params) {
-    const qs = new URLSearchParams({ key: NASS_KEY, format: 'JSON', ...params });
-    const res = await fetch('/nass-api?' + qs.toString());
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-    return json.data || [];
+  const qs = new URLSearchParams({ key: NASS_KEY, format: 'JSON', ...params });
+  const url = '/nass-api?' + qs.toString();
+  const res = await fetch(url);
+  if (!res.ok) {
+    const errorBody = await res.text();
+    console.error('❌ NASS error', res.status, 'para', url);
+    console.error('   Respuesta:', errorBody);
+    throw new Error('HTTP ' + res.status + ' — ' + errorBody);
   }
+  const json = await res.json();
+  return json.data || [];
+}
   
   try {
     badge.textContent = '⟳ descargando...';
