@@ -383,39 +383,82 @@ new Chart(document.getElementById('mainChart'), {
     return json.data || [];
   }
   
+  // nass() que no lanza: devuelve [] si la consulta falla, para no tumbar el resto
+  async function nassSafe(params) {
+    try {
+      return await nass(params);
+    } catch (e) {
+      console.warn('⚠️ Consulta NASS fallida:', params.statisticcat_desc, '—', e.message);
+      return [];
+    }
+  }
+  
   try {
     badge.textContent = '⟳ descargando...';
     badge.style.color = 'var(--amber)';
     
-    // CONSULTA 1: DATOS HISTÓRICOS 2018–2025 (para media histórica)
-    // commodity_desc=CATTLE + prodn_practice_desc=ON FEED
-    // domain_desc=CAPACITY + domaincat=1,000 OR MORE HEAD (feedlots ≥1000 cab.)
-    const COF_BASE = {
+    // INVENTORY: domain CAPACITY, feedlots ≥1,000 cab.
+    const INV_BASE = {
       source_desc: 'SURVEY',
       commodity_desc: 'CATTLE',
       prodn_practice_desc: 'ON FEED',
       domain_desc: 'CAPACITY',
       domaincat_desc: 'CAPACITY: (1,000 OR MORE HEAD)',
+      statisticcat_desc: 'INVENTORY',
+      class_desc: 'ALL CLASSES',
       agg_level_desc: 'NATIONAL'
     };
     
+    // PLACEMENTS: domain CAPACITY ≥1,000 cab., clase total
+    const PLACE_BASE = {
+      source_desc: 'SURVEY',
+      commodity_desc: 'CATTLE',
+      prodn_practice_desc: 'ON FEED',
+      domain_desc: 'CAPACITY',
+      domaincat_desc: 'CAPACITY: (1,000 OR MORE HEAD)',
+      statisticcat_desc: 'PLACEMENTS',
+      class_desc: 'ALL CLASSES',
+      agg_level_desc: 'NATIONAL'
+    };
+    
+    // MARKETINGS: NASS lo llama "SALES FOR SLAUGHTER" (no existe "MARKETINGS")
+    const MKT_BASE = {
+      source_desc: 'SURVEY',
+      commodity_desc: 'CATTLE',
+      prodn_practice_desc: 'ON FEED',
+      domain_desc: 'CAPACITY',
+      domaincat_desc: 'CAPACITY: (1,000 OR MORE HEAD)',
+      statisticcat_desc: 'SALES FOR SLAUGHTER',
+      class_desc: 'ALL CLASSES',
+      agg_level_desc: 'NATIONAL'
+    };
+    
+    // CONSULTA 1: HISTÓRICO 2018–2025
     const [invDataHist, placeDataHist, mktDataHist] = await Promise.all([
-      nass({ ...COF_BASE, statisticcat_desc: 'INVENTORY',  year__GE: 2018, year__LE: 2025 }),
-      nass({ ...COF_BASE, statisticcat_desc: 'PLACEMENTS', year__GE: 2018, year__LE: 2025 }),
-      nass({ ...COF_BASE, statisticcat_desc: 'MARKETINGS', year__GE: 2018, year__LE: 2025 })
+      nassSafe({ ...INV_BASE,   year__GE: 2018, year__LE: 2025 }),
+      nassSafe({ ...PLACE_BASE, year__GE: 2018, year__LE: 2025 }),
+      nassSafe({ ...MKT_BASE,   year__GE: 2018, year__LE: 2025 })
     ]);
     
-    // CONSULTA 2: DATOS EN VIVO 2026 (tiempo real, solo año actual)
+    // CONSULTA 2: EN VIVO 2026
     const [invData2026, placeData2026, mktData2026] = await Promise.all([
-      nass({ ...COF_BASE, statisticcat_desc: 'INVENTORY',  year: 2026 }),
-      nass({ ...COF_BASE, statisticcat_desc: 'PLACEMENTS', year: 2026 }),
-      nass({ ...COF_BASE, statisticcat_desc: 'MARKETINGS', year: 2026 })
+      nassSafe({ ...INV_BASE,   year: 2026 }),
+      nassSafe({ ...PLACE_BASE, year: 2026 }),
+      nassSafe({ ...MKT_BASE,   year: 2026 })
     ]);
+    
+    // Fallback marketings: si "SALES FOR SLAUGHTER" no acepta class_desc, reintentar sin él
+    let mktHist = mktDataHist, mkt2026 = mktData2026;
+    if (!mktHist.length) {
+      const { class_desc, ...MKT_NOCLASS } = MKT_BASE;
+      mktHist = await nassSafe({ ...MKT_NOCLASS, year__GE: 2018, year__LE: 2025 });
+      mkt2026 = await nassSafe({ ...MKT_NOCLASS, year: 2026 });
+    }
     
     // Combinar: histórico + 2026
     const invData = [...invDataHist, ...invData2026];
     const placeData = [...placeDataHist, ...placeData2026];
-    const mktData = [...mktDataHist, ...mktData2026];
+    const mktData = [...mktHist, ...mkt2026];
     
     if (!invData.length) {
       throw new Error('No se encontraron datos de inventario');
