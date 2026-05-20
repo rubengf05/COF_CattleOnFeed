@@ -1,0 +1,11 @@
+[[redirects]]
+  from = "/nass-api"
+  to = "https://quickstats.nass.usda.gov/api/api_GET/"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/nass-api/*"
+  to = "https://quickstats.nass.usda.gov/api/api_GET/:splat"
+  status = 200
+  force = true
