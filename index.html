@@ -3,11 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COF — Cattle on Feed · DATOS EN VIVO</title>
-<script>
-/* API Key de USDA NASS */
-const NASS_KEY = 'EB7D3956-F3E0-3023-A6E7-602F604D4B67';
-</script>
+<title>COF — Cattle on Feed</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -26,11 +22,11 @@ const NASS_KEY = 'EB7D3956-F3E0-3023-A6E7-602F604D4B67';
   body{background:var(--bg);font-family:var(--sans);color:var(--text);min-height:100vh;}
 
   .header{border-bottom:1px solid var(--border);padding:0 28px;background:var(--surface);position:sticky;top:0;z-index:100;}
-  .header-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:52px;}
+  .header-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:52px;gap:10px;}
   .logo{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--green);}
   .hdiv{width:1px;height:18px;background:var(--border2);margin:0 14px;}
   .htitle{font-family:var(--mono);font-size:11px;color:var(--muted);}
-  .data-date{font-family:var(--mono);font-size:11px;color:var(--muted);}
+  .data-date{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;}
   .data-date b{color:var(--blue);}
 
   .main{max-width:1000px;margin:0 auto;padding:32px 28px 64px;}
@@ -62,39 +58,29 @@ const NASS_KEY = 'EB7D3956-F3E0-3023-A6E7-602F604D4B67';
   .lline{width:20px;height:2px;flex-shrink:0;}
   .ldash{width:20px;height:0;border-top:2px dashed;flex-shrink:0;}
 
-  .formula-inline{
-    display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;
-    font-family:var(--mono);font-size:10px;
-    background:rgba(188,140,255,0.05);
-    border:1px solid rgba(188,140,255,0.15);
-    border-radius:5px;
-    padding:7px 12px;
-    margin-bottom:14px;
-    line-height:1.6;
-  }
-  .fi-label{color:var(--muted);}
-  .fi-eq{color:var(--text);font-weight:500;}
-  .fi-green{color:var(--green);}
-  .fi-red{color:var(--red);}
-  .fi-amber{color:var(--amber);}
-  .fi-purple{color:var(--purple);}
-  .fi-sep{color:var(--border2);margin:0 2px;}
+  .formula-inline{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;font-family:var(--mono);font-size:10px;
+    background:rgba(188,140,255,0.05);border:1px solid rgba(188,140,255,0.15);border-radius:5px;padding:7px 12px;margin-bottom:14px;line-height:1.6;}
+  .fi-label{color:var(--muted);} .fi-eq{color:var(--text);font-weight:500;}
 
-  .notes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;animation:fu .4s ease .22s both;}
-  .note{background:var(--surface);border:1px solid var(--border);border-left:3px solid transparent;padding:13px 15px;}
-  .note.bear{border-left-color:var(--red);}
-  .note.bull{border-left-color:var(--green);}
-  .note.watch{border-left-color:var(--amber);}
-  .ntag{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;margin-bottom:5px;}
-  .bear .ntag{color:var(--red);} .bull .ntag{color:var(--green);} .watch .ntag{color:var(--amber);}
-  .nbody{font-size:13px;line-height:1.6;color:var(--text2);}
+  .tw{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;}
+  th{color:var(--muted);font-weight:500;text-align:right;padding:6px 8px;border-bottom:1px solid var(--border2);white-space:nowrap;}
+  td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;color:var(--text2);}
+  th:first-child,td:first-child{text-align:left;}
+  td.up{color:var(--green);} td.dn{color:var(--red);}
+  .fuera{background:var(--amber-dim);color:var(--amber);border-radius:3px;padding:1px 6px;}
+
+  .chk{font-size:13px;line-height:1.7;color:var(--text2);padding-left:18px;}
+  .chk li{margin-bottom:4px;}
+  .chk b{color:var(--green);font-weight:500;}
 
   .footer{border-top:1px solid var(--border);padding:14px 28px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);}
+  .err{color:var(--red);font-family:var(--mono);font-size:12px;padding:20px;}
 
   @media(max-width:700px){
     .main{padding:20px 16px 40px;} .header{padding:0 16px;}
-    .metrics{grid-template-columns:1fr 1fr;} .notes{grid-template-columns:1fr;}
-    .hero-title{font-size:20px;}
+    .metrics{grid-template-columns:1fr 1fr;} .card{padding:18px 14px;}
+    .hero-title{font-size:20px;} .htitle,.hdiv{display:none;}
   }
 </style>
 </head>
@@ -105,90 +91,89 @@ const NASS_KEY = 'EB7D3956-F3E0-3023-A6E7-602F604D4B67';
     <div style="display:flex;align-items:center">
       <span class="logo">COF_PRO</span>
       <span class="hdiv"></span>
-      <span class="htitle">USDA NASS · Feedlots ≥1,000 cab.</span>
+      <span class="htitle">USDA NASS · Cebaderos ≥1.000 cab.</span>
     </div>
-    <div class="data-date" id="data-date">Datos: <b>Marzo 2026</b> <span id="live-badge" style="color:var(--amber);font-size:9px">⟳ cargando...</span></div>
+    <div class="data-date" id="data-date">Informe: <b>…</b></div>
   </div>
 </header>
 
-<main class="main">
+<main class="main" id="main">
 
   <div class="hero">
-    <div class="hero-tag">// Cattle on Feed · Informe Marzo 2026</div>
-    <h1 class="hero-title">Inventario histórico + Predicciones</h1>
+    <div class="hero-tag" id="hero-tag">// Cattle on Feed</div>
+    <h1 class="hero-title">Cattle on Feed: cuánto ganado hay en cebadero y cuánto entra y sale</h1>
     <div class="hero-sub">
-      Feedlots ≥1,000 cab. · Serie verificada USDA NASS 2018–2026 ·
-      Media histórica USDA NASS 2021–2025 · Proyección 2026 basada en net placement
+      Cebaderos de 1.000 cabezas o más · USDA NASS, serie oficial desde 1996 ·
+      Comprobada antes de publicarse (abajo, cómo)
     </div>
   </div>
 
-  <div class="metrics">
-    <div class="metric">
-      <div class="mlabel">Inventario Mar 2026</div>
-      <div class="mval">11.55M</div>
-      <div class="mbadge b-red">▼ −0.2% vs Mar 25</div>
-    </div>
-    <div class="metric">
-      <div class="mlabel">Placements May 2026</div>
-      <div class="mval">1.61M</div>
-      <div class="mbadge b-grn">▲ +4% YoY</div>
-    </div>
-    <div class="metric">
-      <div class="mlabel">Marketings May 2026</div>
-      <div class="mval">1.52M</div>
-      <div class="mbadge b-red">▼ −7% YoY</div>
-    </div>
-    <div class="metric">
-      <div class="mlabel">Caída desde pico</div>
-      <div class="mval">−5.3%</div>
-      <div class="mbadge b-amb">vs Mar 2022</div>
-    </div>
+  <div class="metrics" id="metrics"></div>
+
+  <div class="card">
+    <div class="ctag">El dato frente a lo que esperaba el mercado</div>
+    <div class="ctitle">Real vs. media de los analistas (% sobre el año anterior)</div>
+    <div class="csub">En ámbar, cuando el dato real cae fuera de todo el rango de estimaciones. Estimaciones: nota de Hightower de cada informe.</div>
+    <div class="tw"><table id="t-est"></table></div>
   </div>
 
   <div class="card">
-    <div class="ctag">Inventario mensual en mismo marco temporal</div>
-    <div class="ctitle">Ene–Dic · Media histórica 2021–2025 vs 2026</div>
-    <div class="csub">Banda gris = rango min/max 2021–2025 · Línea gris = media · Azul = 2025 · Verde = 2026 real + proyección</div>
+    <div class="ctag">Inventario el día 1 de cada mes</div>
+    <div class="ctitle" id="inv-title">Ene–Dic · rango y media de los 5 años anteriores</div>
+    <div class="csub">Banda gris = mínimo y máximo · Línea gris = media · Azul = año anterior · Verde = año en curso · Discontinua = proyección con su banda de error</div>
     <div class="formula-inline">
-      <span class="fi-label">Proy. 2026:</span>
-      <span class="fi-eq"><span class="fi-green">Inv(m+1)</span> = <span class="fi-green">Inv(m)</span> + <span class="fi-green">Place(m)</span> − <span class="fi-red">Mkt(m)</span> − <span class="fi-amber">OtherDisp(m)</span></span>
-      <span class="fi-sep">·</span>
-      <span class="fi-eq"><span class="fi-green">Place(m)</span> = <span class="fi-purple">1,610K</span> × <span class="fi-amber">k_place(m)</span></span>
-      <span class="fi-sep">·</span>
-      <span class="fi-eq"><span class="fi-red">Mkt(m)</span> = <span class="fi-purple">1,520K</span> × <span class="fi-amber">k_mkt(m)</span></span>
-      <span class="fi-sep">·</span>
-      <span class="fi-label">k = ratio estacional histórico 2021–2025</span>
+      <span class="fi-label">Proyección:</span>
+      <span class="fi-eq">mismo % sobre el año anterior que el último inventario</span>
+      <span class="fi-label" id="proy-err"></span>
     </div>
-    <div class="legend">
-      <div class="li">
-        <div class="lband" style="background:rgba(139,148,158,0.2);border:1px solid rgba(139,148,158,0.3)"></div>
-        Rango histórico 2021–2025
-      </div>
-      <div class="li">
-        <div class="lline" style="background:#8b949e"></div>
-        Media 2021–2025
-      </div>
-      <div class="li">
-        <div class="lline" style="background:#58a6ff"></div>
-        2025 (real)
-      </div>
-      <div class="li">
-        <div class="lline" style="background:#3fb950"></div>
-        2026 real
-      </div>
-      <div class="li">
-        <div class="ldash" style="border-color:rgba(63,185,80,0.6)"></div>
-        2026 proyección
-      </div>
-    </div>
-    <div style="position:relative;height:420px;"><canvas id="mainChart"></canvas></div>
+    <div style="position:relative;height:400px;"><canvas id="c-inv"></canvas></div>
+  </div>
+
+  <div class="card">
+    <div class="ctag">Colocaciones (entradas al cebadero) por mes</div>
+    <div class="ctitle">Lo que entra hoy es la oferta de dentro de 4-9 meses</div>
+    <div class="csub">Mismo esquema: banda = rango de los 5 años anteriores, gris = media, azul = año anterior, verde = año en curso</div>
+    <div style="position:relative;height:340px;"><canvas id="c-col"></canvas></div>
+  </div>
+
+  <div class="card">
+    <div class="ctag">Ventas a matadero por mes</div>
+    <div class="ctitle">Lo que sale del cebadero hacia el empacador</div>
+    <div class="csub">Mismo esquema que arriba</div>
+    <div style="position:relative;height:340px;"><canvas id="c-ven"></canvas></div>
+  </div>
+
+  <div class="card">
+    <div class="ctag">Colocaciones por peso de entrada</div>
+    <div class="ctitle">Con qué peso entra el ganado y cuándo saldría</div>
+    <div class="csub">Salida aproximada: (1.400 lb − peso de entrada) / 3,2 lb al día, supuesto de industria. Medido en el desk de carne: este reparto por peso no anticipa las ventas mejor que mirar las colocaciones de hace unos meses. Es contexto, no señal.</div>
+    <div style="position:relative;height:320px;margin-bottom:16px;"><canvas id="c-pesos"></canvas></div>
+    <div class="tw"><table id="t-pesos"></table></div>
+  </div>
+
+  <div class="card">
+    <div class="ctag">Novillas en cebadero (trimestral)</div>
+    <div class="ctitle">% de novillas sobre novillas + novillos</div>
+    <div class="csub">Si baja, los ganaderos se quedan hembras para criar (reconstrucción del rebaño). Si sube, siguen mandando hembras a cebar.</div>
+    <div style="position:relative;height:300px;"><canvas id="c-nov"></canvas></div>
+  </div>
+
+  <div class="card">
+    <div class="ctag">Tabla mensual</div>
+    <div class="ctitle">Últimos 24 meses</div>
+    <div class="csub">Miles de cabezas. Inventario a día 1; colocaciones, ventas y otras bajas, del mes.</div>
+    <div class="tw"><table id="t-mes"></table></div>
+  </div>
+
+  <div class="card">
+    <div class="ctag">Cómo se comprueba</div>
+    <div class="ctitle">Cada cifra cruzada por un segundo camino</div>
+    <ul class="chk" id="chk"></ul>
   </div>
 
 </main>
 
-<div class="footer">
-  USDA NASS · Cattle on Feed · 20 Mar 2026 · Feedlots ≥1,000 cab. · Solo orientativo
-</div>
+<div class="footer" id="footer">USDA NASS · Cattle on Feed · Cebaderos ≥1.000 cab. · Solo orientativo, no es una recomendación</div>
 
 <script>
 const MONO = "'IBM Plex Mono',monospace";
@@ -196,296 +181,173 @@ const GRID = 'rgba(255,255,255,0.05)';
 const TICK = '#8b949e';
 Chart.defaults.font.family = MONO;
 Chart.defaults.color = TICK;
+const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const MESES_L = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DATO = {inventario:'Inventario día 1', colocaciones:'Colocaciones', ventas:'Ventas a matadero'};
 
-const MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const fmtM = v => (v/1e6).toLocaleString('es-ES',{minimumFractionDigits:3,maximumFractionDigits:3}) + ' M';
+const fmtK = v => v == null ? '—' : Math.round(v/1000).toLocaleString('es-ES');
+const fmtP = (v,d=1) => v.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fecha = s => { const [y,m,d] = s.split('-'); return `${+d} ${MESES[m-1].toLowerCase()} ${y}`; };
 
-// ── DATOS HISTÓRICOS MENSUALES INVENTARIO (miles de cab.)
-const historical = {
-  2021: [11823,11942,12079,12096,11990,11856,11700,11636,11700,11810,11870,11912],
-  2022: [12004,12102,12199,12198,12066,11920,11750,11668,11730,11840,11903,11940],
-  2023: [11928,11886,11833,11810,11698,11572,11420,11370,11430,11530,11600,11640],
-  2024: [11823,11716,11781,11770,11650,11524,11380,11330,11390,11490,11560,11600],
-  2025: [11450,11510,11577,11600,11420,11290,11250,11270,11320,11390,11450,11490],
-};
-
-// ── PLACEMENTS HISTÓRICOS MENSUALES (miles de cab.) · USDA NASS
-const histPlacements = {
-  2021: [1780,1640,1920,1850,1780,1710,1650,1780,1850,1820,1760,1700],
-  2022: [1810,1660,1940,1870,1800,1730,1670,1800,1870,1850,1790,1730],
-  2023: [1760,1610,1890,1820,1750,1680,1620,1750,1820,1800,1740,1680],
-  2024: [1730,1590,1870,1800,1730,1660,1600,1730,1800,1780,1720,1660],
-  2025: [1700,1550,1860,1790,1700,1630,1580,1700,1770,1750,1700,1640],
-};
-
-// ── MARKETINGS HISTÓRICOS MENSUALES (miles de cab.) · USDA NASS
-const histMarketings = {
-  2021: [1850,1680,1940,1900,1870,1860,1810,1800,1800,1850,1810,1700],
-  2022: [1870,1710,1970,1930,1900,1880,1830,1820,1820,1860,1830,1720],
-  2023: [1820,1660,1930,1880,1860,1840,1790,1780,1780,1830,1790,1680],
-  2024: [1800,1640,1910,1860,1840,1820,1770,1760,1760,1810,1770,1660],
-  2025: [1770,1620,1890,1840,1820,1800,1750,1740,1740,1790,1750,1640],
-};
-
-const years5 = [2021, 2022, 2023, 2024, 2025];
-let mainChart = null; // Guardará la instancia del gráfico
-
-/* ═══════════════════════════════════════════════════════════════════════
-   MOTOR DE CÁLCULO Y RENDERIZADO DEL DASHBOARD
-   ═══════════════════════════════════════════════════════════════════════ */
-function renderDashboard(invByYear, placeByYear, mktByYear, currentYear = 2026) {
-  const currentInv = invByYear[currentYear] || new Array(12).fill(null);
-  const currentPlace = placeByYear[currentYear] || new Array(12).fill(null);
-  const currentMkt = mktByYear[currentYear] || new Array(12).fill(null);
-
-  // 1. Detectar dinámicamente el último mes con datos reales reportados
-  const lastInvIdx = currentInv.reduce((last, v, i) => v !== null ? i : last, -1);
-  const lastPlaceIdx = currentPlace.reduce((last, v, i) => v !== null ? i : last, Math.max(0, lastInvIdx - 1));
-  const lastMktIdx = currentMkt.reduce((last, v, i) => v !== null ? i : last, Math.max(0, lastInvIdx - 1));
-
-  // Anclas para iniciar la proyección (usar datos del año pasado si fallara el actual)
-  const anchorPlace = currentPlace[lastPlaceIdx] || histPlacements[2025][lastPlaceIdx];
-  const anchorMkt = currentMkt[lastMktIdx] || histMarketings[2025][lastMktIdx];
-  const anchorOther = 45; // Estimación estática para 'Other Disappearance'
-
-  // 2. Calcular los coeficientes estacionales anclados al último mes disponible
-  function seasonalRatio(histData, anchorIdx) {
-    return MONTHS.map((_, m) => {
-      const ratios = years5.map(y => histData[y][m] / histData[y][anchorIdx]);
-      return ratios.reduce((a, b) => a + b, 0) / ratios.length;
-    });
-  }
-  const kPlace = seasonalRatio(histPlacements, lastPlaceIdx);
-  const kMkt   = seasonalRatio(histMarketings, lastMktIdx);
-
-  // 3. Generar la proyección desde el último dato real hasta diciembre
-  const proj2026 = new Array(12).fill(null);
-  
-  // Solapar el último dato real para que la línea del gráfico conecte visualmente
-  if (lastInvIdx >= 0) {
-    proj2026[lastInvIdx] = currentInv[lastInvIdx];
-  }
-
-  for (let m = lastInvIdx + 1; m < 12; m++) {
-    const pPlace = Math.round(anchorPlace * kPlace[m]);
-    const pMkt   = Math.round(anchorMkt * kMkt[m]);
-    const net    = pPlace - pMkt - anchorOther;
-    
-    const prevInv = m === lastInvIdx + 1 ? currentInv[lastInvIdx] : proj2026[m - 1];
-    proj2026[m] = prevInv + net;
-  }
-
-  // 4. Calcular series estáticas para el contexto
-  const data2025 = historical[2025];
-  const histMean = MONTHS.map((_, m) => {
-    const vals = years5.map(y => historical[y][m]);
-    return Math.round(vals.reduce((a,b)=>a+b,0) / vals.length);
+function porAnyo(D, serie) {
+  const out = {};
+  D.meses.forEach((p,i) => {
+    const [y,m] = p.split('-').map(Number);
+    (out[y] ||= new Array(12).fill(null))[m-1] = serie[i];
   });
-  const histMin = MONTHS.map((_, m) => Math.min(...years5.map(y => historical[y][m])));
-  const histMax = MONTHS.map((_, m) => Math.max(...years5.map(y => historical[y][m])));
-
-  // Configurar las escalas del eje Y
-  const yVals = [...histMin, ...histMax, ...data2025, ...currentInv.filter(v=>v!==null), ...proj2026.filter(v=>v!==null)];
-  const yMin = Math.floor(Math.min(...yVals) * 0.990 / 50) * 50;
-  const yMax = Math.ceil( Math.max(...yVals) * 1.006 / 50) * 50;
-
-  // 5. Instanciar o actualizar Chart.js
-  const chartData = {
-    labels: MONTHS,
-    datasets: [
-      { label: 'Rango max', data: histMax, borderWidth: 0, pointRadius: 0, fill: '+1', backgroundColor: 'rgba(139,148,158,0.12)', tension: 0.4, order: 20 },
-      { label: 'Rango min', data: histMin, borderWidth: 0, pointRadius: 0, fill: false, tension: 0.4, order: 21 },
-      { label: 'Media 2021–2025', data: histMean, borderColor: 'rgba(139,148,158,0.7)', borderWidth: 1.5, borderDash: [4, 3], pointRadius: 0, fill: false, tension: 0.4, order: 4 },
-      { label: '2025 real', data: data2025, borderColor: '#58a6ff', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#58a6ff', pointBorderColor: '#0a0c0f', pointBorderWidth: 1, fill: false, tension: 0.4, order: 3 },
-      { label: `${currentYear} real`, data: currentInv, borderColor: '#3fb950', borderWidth: 2.5, pointRadius: ctx => currentInv[ctx.dataIndex] !== null ? 5 : 0, pointBackgroundColor: '#3fb950', pointBorderColor: '#0a0c0f', pointBorderWidth: 1.5, fill: false, tension: 0.4, spanGaps: false, order: 1 },
-      { label: `${currentYear} proyección`, data: proj2026, borderColor: 'rgba(63,185,80,0.6)', borderWidth: 2, borderDash: [5, 4], pointRadius: ctx => ctx.dataIndex > lastInvIdx && proj2026[ctx.dataIndex] !== null ? 3 : 0, pointBackgroundColor: 'rgba(63,185,80,0.6)', pointBorderColor: '#0a0c0f', pointBorderWidth: 1, fill: false, tension: 0.4, spanGaps: false, order: 2 },
-    ]
-  };
-
-  if (mainChart) {
-    mainChart.data = chartData;
-    mainChart.options.scales.y.min = yMin;
-    mainChart.options.scales.y.max = yMax;
-    mainChart.update();
-  } else {
-    mainChart = new Chart(document.getElementById('mainChart'), {
-      type: 'line',
-      data: chartData,
-      options: {
-        responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#1c2333', borderColor: '#30363d', borderWidth: 1, padding: 12, titleColor: '#e6edf3', bodyColor: '#8b949e', titleFont: { family: MONO, size: 11, weight: '600' }, bodyFont: { family: MONO, size: 11 },
-            filter: item => !['Rango max','Rango min'].includes(item.dataset.label) && item.raw !== null,
-            callbacks: {
-              label: ctx => {
-                if (ctx.raw === null) return null;
-                const v = (ctx.raw / 1000).toFixed(2) + 'M';
-                const map = { 'Media 2021–2025': `  Media hist.: ${v}`, '2025 real': `  2025: ${v}`, [`${currentYear} real`]: `  ${currentYear}: ${v} ✓`, [`${currentYear} proyección`]: `  ${currentYear} proy.: ${v}` };
-                return map[ctx.dataset.label] ?? null;
-              },
-              afterBody: ctx => {
-                const idx = ctx[0].dataIndex;
-                const meanVal = histMean[idx], val25 = data2025[idx], valCurReal = currentInv[idx], valCurProj = proj2026[idx], valCur = valCurReal ?? valCurProj;
-                if (!valCur || !meanVal) return [];
-                const vsMedia = ((valCur-meanVal)/meanVal*100).toFixed(1), vs25 = val25 ? ((valCur-val25)/val25*100).toFixed(1) : null;
-                const lines = [`  vs media: ${vsMedia>0?'+':''}${vsMedia}%`];
-                if (vs25) lines.push(`  vs 2025: ${vs25>0?'+':''}${vs25}%`);
-                return lines;
-              }
-            }
-          }
-        },
-        scales: {
-          x: { grid: { color: GRID }, ticks: { color: TICK, font: { size: 11 }, autoSkip: false, maxRotation: 0 }, border: { color: 'rgba(255,255,255,0.08)' } },
-          y: { grid: { color: GRID }, min: yMin, max: yMax, ticks: { callback: v => (v/1000).toFixed(1)+'M', stepSize: 100 }, border: { color: 'rgba(255,255,255,0.08)' } }
-        }
-      }
-    });
-  }
+  return out;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   CAPA DE DATOS EN VIVO — USDA NASS Cattle on Feed
-   ═══════════════════════════════════════════════════════════════════════ */
-(async () => {
-  const badge = document.getElementById('live-badge');
-  const dataDate = document.getElementById('data-date');
-  
-  async function nass(params) {
-    const qs = new URLSearchParams({ key: NASS_KEY, format: 'JSON', ...params });
-    const url = '/nass-api?' + qs.toString();
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-    return json.data || [];
+function grafEstacional(id, D, serie, anyo, extra = []) {
+  const Y = porAnyo(D, serie);
+  const prev = [1,2,3,4,5].map(k => anyo - k).filter(y => Y[y]);
+  const col = m => prev.map(y => Y[y][m]).filter(v => v != null);
+  const max = MESES.map((_,m) => Math.max(...col(m)));
+  const min = MESES.map((_,m) => Math.min(...col(m)));
+  const media = MESES.map((_,m) => { const c = col(m); return c.reduce((a,b)=>a+b,0)/c.length; });
+  const cur = Y[anyo] || new Array(12).fill(null);
+  const ds = [
+    {label:'max', data:max, borderWidth:0, pointRadius:0, fill:'+1', backgroundColor:'rgba(139,148,158,0.12)', tension:.35},
+    {label:'min', data:min, borderWidth:0, pointRadius:0, fill:false, tension:.35},
+    {label:`Media ${prev.at(-1)}–${prev[0]}`, data:media, borderColor:'rgba(139,148,158,0.7)', borderWidth:1.5, borderDash:[4,3], pointRadius:0, tension:.35},
+    {label:`${anyo-1}`, data:Y[anyo-1], borderColor:'#58a6ff', borderWidth:2, pointRadius:2.5, pointBackgroundColor:'#58a6ff', tension:.35},
+    {label:`${anyo}`, data:cur, borderColor:'#3fb950', borderWidth:2.5, pointRadius:4, pointBackgroundColor:'#3fb950', tension:.35},
+    ...extra,
+  ];
+  new Chart(document.getElementById(id), {
+    type:'line', data:{labels:MESES, datasets:ds},
+    options:{responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
+      plugins:{legend:{display:true, labels:{boxWidth:14, filter:i => !['max','min','banda alta','banda baja'].includes(i.text)}},
+        tooltip:{filter:i => !['max','min'].includes(i.dataset.label) && i.raw != null,
+          callbacks:{label:c => `  ${c.dataset.label}: ${fmtM(c.raw)}`}}},
+      scales:{x:{grid:{color:GRID}}, y:{grid:{color:GRID}, ticks:{callback:v => (v/1e6).toFixed(2)+'M'}}}}
+  });
+  return {Y, prev};
+}
+
+function pintar(D) {
+  const n = D.meses.length;
+  const iInv = D.meses.indexOf(D.ultimo_inventario);
+  const iFl = iInv - 1;                                  // último mes con flujos
+  const [yInv, mInv] = D.ultimo_inventario.split('-').map(Number);
+  const [yFl, mFl] = D.meses[iFl].split('-').map(Number);
+  const yoy = (s, i) => s[i] / s[i-12] * 100 - 100;
+
+  document.getElementById('data-date').innerHTML = `Informe: <b>${fecha(D.ultimo_informe)}</b>`;
+  document.getElementById('hero-tag').textContent = `// Cattle on Feed · informe del ${fecha(D.ultimo_informe)}`;
+
+  // Novillas: último trimestre con dato
+  let iNov = -1; D.novillas.forEach((v,i) => { if (v != null && D.novillos[i] != null) iNov = i; });
+  const pctNov = i => D.novillas[i] / (D.novillas[i] + D.novillos[i]) * 100;
+
+  const badge = (v, txt, invertir=false) => {
+    const cls = Math.abs(v) < 0.05 ? 'b-blu' : ((v > 0) !== invertir ? 'b-grn' : 'b-red');
+    return `<div class="mbadge ${cls}">${v>=0?'▲ +':'▼ −'}${fmtP(Math.abs(v))} ${txt}</div>`;
+  };
+  const m = [
+    [`Inventario 1 ${MESES[mInv-1]} ${yInv}`, fmtM(D.inv[iInv]), badge(yoy(D.inv,iInv), '% vs año ant.')],
+    [`Colocaciones ${MESES[mFl-1]} ${yFl}`, fmtM(D.col[iFl]), badge(yoy(D.col,iFl), '% vs año ant.')],
+    [`Ventas ${MESES[mFl-1]} ${yFl}`, fmtM(D.ven[iFl]), badge(yoy(D.ven,iFl), '% vs año ant.')],
+    [`Novillas ${MESES[+D.meses[iNov].split('-')[1]-1]} ${D.meses[iNov].split('-')[0]}`, fmtP(pctNov(iNov))+' %',
+      `<div class="mbadge b-amb">${fmtP(pctNov(iNov-12))} % hace un año</div>`],
+  ];
+  document.getElementById('metrics').innerHTML = m.map(([l,v,b]) =>
+    `<div class="metric"><div class="mlabel">${l}</div><div class="mval">${v}</div>${b}</div>`).join('');
+
+  // Real vs esperado
+  const inf = [...new Set(D.estimaciones.map(e => e.informe))].sort().reverse();
+  let h = '<tr><th>Informe</th><th>Dato</th><th>Real</th><th>Media</th><th>Rango</th><th>Sorpresa</th></tr>';
+  inf.forEach(f => D.estimaciones.filter(e => e.informe === f).forEach((e,k) => {
+    const s = e.real_pct - e.media_pct, fuera = e.real_pct < e.min_pct || e.real_pct > e.max_pct;
+    h += `<tr><td>${k===0 ? fecha(f) : ''}</td><td style="text-align:left">${DATO[e.dato]}</td>
+      <td>${fuera ? `<span class="fuera">${fmtP(e.real_pct)} %</span>` : fmtP(e.real_pct)+' %'}</td>
+      <td>${fmtP(e.media_pct)} %</td><td>${fmtP(e.min_pct)}–${fmtP(e.max_pct)}</td>
+      <td class="${s>0?'up':s<0?'dn':''}">${s>0?'+':''}${fmtP(s)} pp</td></tr>`;
+  }));
+  document.getElementById('t-est').innerHTML = h;
+
+  // Inventario + proyección
+  const proy = new Array(12).fill(null), lo = new Array(12).fill(null), hi = new Array(12).fill(null);
+  proy[mInv-1] = lo[mInv-1] = hi[mInv-1] = D.inv[iInv];
+  D.proyeccion.forEach(p => {
+    const [y,mm] = p.mes.split('-').map(Number);
+    if (y === yInv) { proy[mm-1] = p.cab; lo[mm-1] = p.lo; hi[mm-1] = p.hi; }
+  });
+  document.getElementById('inv-title').textContent = `Ene–Dic ${yInv} · rango y media de ${yInv-5}–${yInv-1}`;
+  document.getElementById('proy-err').textContent = '· error medio en el pasado: ' +
+    D.proyeccion.map((p,k) => `${k+1} mes${k?'es':''} ${fmtP(p.err_medio_pct,1)} %`).join(' · ') +
+    ` · banda = 80 % de los casos desde 2002`;
+  grafEstacional('c-inv', D, D.inv, yInv, [
+    {label:'banda alta', data:hi, borderWidth:0, pointRadius:0, fill:'+1', backgroundColor:'rgba(63,185,80,0.10)', tension:.35},
+    {label:'banda baja', data:lo, borderWidth:0, pointRadius:0, fill:false, tension:.35},
+    {label:'Proyección', data:proy, borderColor:'rgba(63,185,80,0.7)', borderWidth:2, borderDash:[5,4], pointRadius:3, tension:.35},
+  ]);
+  grafEstacional('c-col', D, D.col, yFl);
+  grafEstacional('c-ven', D, D.ven, yFl);
+
+  // Pesos: últimos 13 meses con desglose
+  const idx = []; for (let i = iFl; i >= 0 && idx.length < 13; i--) if (D.pesos[0].serie[i] != null) idx.unshift(i);
+  const colores = ['#bc8cff','#58a6ff','#3fb950','#d29922','#f0883e','#f85149'];
+  new Chart(document.getElementById('c-pesos'), {
+    type:'bar',
+    data:{labels:idx.map(i => { const [y,mm] = D.meses[i].split('-'); return `${MESES[mm-1]} ${y.slice(2)}`; }),
+      datasets:D.pesos.map((p,k) => ({label:p.nombre, data:idx.map(i => p.serie[i]), backgroundColor:colores[k]}))},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{boxWidth:12}}, tooltip:{mode:'index', callbacks:{label:c => `  ${c.dataset.label}: ${fmtK(c.raw)} mil`}}},
+      scales:{x:{stacked:true, grid:{color:GRID}}, y:{stacked:true, grid:{color:GRID}, ticks:{callback:v => (v/1e6).toFixed(1)+'M'}}}}
+  });
+  const salida = meses => { const t = (mFl - 1) + Math.round(meses); return `${MESES[t % 12]} ${yFl + Math.floor(t/12)}`; };
+  let hp = `<tr><th>Peso de entrada</th><th>${MESES[mFl-1]} ${yFl}</th><th>Año ant.</th><th>Var.</th><th>% del total</th><th>Sale aprox.</th></tr>`;
+  D.pesos.forEach(p => {
+    const v = p.serie[iFl], a = p.serie[iFl-12], s = a ? (v/a*100-100) : null;
+    hp += `<tr><td>${p.nombre}</td><td>${fmtK(v)}</td><td>${fmtK(a)}</td>
+      <td class="${s>0?'up':s<0?'dn':''}">${s==null?'—':(s>0?'+':'')+fmtP(s)+' %'}</td>
+      <td>${fmtP(v/D.col[iFl]*100)} %</td><td>${salida(p.salida_meses)} (~${fmtP(p.salida_meses)} m)</td></tr>`;
+  });
+  hp += `<tr><td><b>Total</b></td><td><b>${fmtK(D.col[iFl])}</b></td><td>${fmtK(D.col[iFl-12])}</td>
+    <td>${(yoy(D.col,iFl)>0?'+':'')+fmtP(yoy(D.col,iFl))} %</td><td>100 %</td><td></td></tr>`;
+  document.getElementById('t-pesos').innerHTML = hp;
+
+  // Novillas trimestral
+  const qi = D.novillas.map((v,i) => (v != null && D.novillos[i] != null) ? i : -1).filter(i => i >= 0);
+  new Chart(document.getElementById('c-nov'), {
+    type:'line',
+    data:{labels:qi.map(i => D.meses[i]), datasets:[{label:'% novillas', data:qi.map(pctNov),
+      borderColor:'#d29922', borderWidth:2, pointRadius:0, tension:.2}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c => `  ${fmtP(c.raw)} %`}}},
+      scales:{x:{grid:{color:GRID}, ticks:{maxTicksLimit:10}}, y:{grid:{color:GRID}, ticks:{callback:v => v+' %'}}}}
+  });
+
+  // Tabla mensual
+  let ht = '<tr><th>Mes</th><th>Inventario</th><th>vs año ant.</th><th>Colocaciones</th><th>vs año ant.</th><th>Ventas</th><th>vs año ant.</th><th>Otras bajas</th></tr>';
+  const pc = (s,i) => { if (s[i]==null || s[i-12]==null) return '<td>—</td>'; const v = yoy(s,i);
+    return `<td class="${v>0?'up':v<0?'dn':''}">${v>0?'+':''}${fmtP(v)} %</td>`; };
+  for (let i = iInv; i > iInv - 24; i--) {
+    const [y,mm] = D.meses[i].split('-');
+    ht += `<tr><td>${MESES[mm-1]} ${y}</td><td>${fmtK(D.inv[i])}</td>${pc(D.inv,i)}
+      <td>${fmtK(D.col[i])}</td>${pc(D.col,i)}<td>${fmtK(D.ven[i])}</td>${pc(D.ven,i)}<td>${fmtK(D.otr[i])}</td></tr>`;
   }
-  
-  async function nassSafe(params) {
-    try { return await nass(params); } catch (e) { return []; }
-  }
-  
-  try {
-    badge.textContent = '⟳ descargando...';
-    badge.style.color = 'var(--amber)';
-    
-    const INV_BASE = { source_desc: 'SURVEY', commodity_desc: 'CATTLE', prodn_practice_desc: 'ON FEED', domain_desc: 'CAPACITY', domaincat_desc: 'CAPACITY: (1,000 OR MORE HEAD)', statisticcat_desc: 'INVENTORY', class_desc: 'ALL CLASSES', agg_level_desc: 'NATIONAL' };
-    const PLACE_BASE = { ...INV_BASE, statisticcat_desc: 'PLACEMENTS' };
-    const MKT_BASE = { ...INV_BASE, statisticcat_desc: 'SALES FOR SLAUGHTER' };
-    
-    // Consultas concurrentes (Histórico + Actual)
-    const [invDataHist, placeDataHist, mktDataHist, invData2026, placeData2026, mktData2026] = await Promise.all([
-      nassSafe({ ...INV_BASE, year__GE: 2018, year__LE: 2025 }),
-      nassSafe({ ...PLACE_BASE, year__GE: 2018, year__LE: 2025 }),
-      nassSafe({ ...MKT_BASE, year__GE: 2018, year__LE: 2025 }),
-      nassSafe({ ...INV_BASE, year: 2026 }),
-      nassSafe({ ...PLACE_BASE, year: 2026 }),
-      nassSafe({ ...MKT_BASE, year: 2026 })
-    ]);
-    
-    // Fallback marketings si requiere sin class_desc
-    let mktHist = mktDataHist, mkt2026 = mktData2026;
-    if (!mktHist.length) {
-      const { class_desc, ...MKT_NOCLASS } = MKT_BASE;
-      mktHist = await nassSafe({ ...MKT_NOCLASS, year__GE: 2018, year__LE: 2025 });
-      mkt2026 = await nassSafe({ ...MKT_NOCLASS, year: 2026 });
-    }
-    
-    const invData = [...invDataHist, ...invData2026];
-    const placeData = [...placeDataHist, ...placeData2026];
-    const mktData = [...mktHist, ...mkt2026];
-    
-    if (!invData.length) throw new Error('No se encontraron datos de inventario');
-    
-    function buildSeries(data) {
-      const byYear = {};
-      const monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-      data.forEach(row => {
-        const y = parseInt(row.year);
-        const period = (row.reference_period_desc || '').toUpperCase();
-        if (period === 'YEAR' || period === 'MARKETING YEAR') return;
-        const monthMatch = period.match(/(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)/);
-        if (!monthMatch) return;
-        const m = monthNames.indexOf(monthMatch[0]);
-        if (m === -1) return;
-        const raw = (row.Value || '').replace(/,/g, '').trim();
-        if (raw === '' || raw === '(D)' || raw === '(NA)' || isNaN(raw)) return;
-        if (!byYear[y]) byYear[y] = new Array(12).fill(null);
-        byYear[y][m] = Math.round(parseInt(raw) / 1000);
-      });
-      return byYear;
-    }
-    
-    const invByYear = buildSeries(invData);
-    const placeByYear = buildSeries(placeData);
-    const mktByYear = buildSeries(mktData);
-    
-    // Actualizar datos históricos globales
-    Object.keys(invByYear).forEach(y => { if (parseInt(y) <= 2025) historical[y] = invByYear[y]; });
-    
-    // Ejecutar Motor de Dashboard
-    renderDashboard(invByYear, placeByYear, mktByYear, 2026);
-    
-    // Actualizar Texto del Mes en Vivo
-    if (invByYear[2026]) {
-      const lastValidIdx = invByYear[2026].reduce((last, v, i) => v !== null ? i : last, -1);
-      if (lastValidIdx >= 0) {
-        const monthName = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][lastValidIdx];
-        dataDate.innerHTML = `Datos: <b>${monthName} 2026</b> <span id="live-badge" style="color:var(--green);font-size:9px">✓ EN VIVO</span>`;
-      }
-    }
-    
-    // DOM Metrics Update (Ajustado al último mes dinámico)
-    const currentInvArray = invByYear[2026] || [];
-    const lastInvIdx = currentInvArray.reduce((last, v, i) => v !== null ? i : last, -1);
-    
-    if (lastInvIdx >= 0) {
-      const metrics = document.querySelectorAll('.metric');
-      // Inventario
-      if (metrics[0]) {
-        const curInv = currentInvArray[lastInvIdx];
-        const prevInv25 = invByYear[2025]?.[lastInvIdx] || historical[2025][lastInvIdx];
-        const change = ((curInv - prevInv25) / prevInv25 * 100).toFixed(1);
-        metrics[0].querySelector('.mlabel').textContent = `Inventario ${MONTHS[lastInvIdx]} 2026`;
-        metrics[0].querySelector('.mval').textContent = (curInv / 1000).toFixed(2) + 'M';
-        metrics[0].querySelector('.mbadge').textContent = (change >= 0 ? '▲ +' : '▼ ') + Math.abs(change) + '% vs ' + MONTHS[lastInvIdx] + ' 25';
-        metrics[0].querySelector('.mbadge').className = 'mbadge ' + (change >= 0 ? 'b-grn' : 'b-red');
-      }
-      
-      const lastPlaceMktIdx = Math.max(0, lastInvIdx - 1);
-      // Placements
-      if (placeByYear[2026]?.[lastPlaceMktIdx] && metrics[1]) {
-        const curPlace = placeByYear[2026][lastPlaceMktIdx];
-        const place25 = placeByYear[2025]?.[lastPlaceMktIdx] || histPlacements[2025][lastPlaceMktIdx];
-        const pctChange = ((curPlace - place25) / place25 * 100).toFixed(0);
-        metrics[1].querySelector('.mlabel').textContent = `Placements ${MONTHS[lastPlaceMktIdx]} 2026`;
-        metrics[1].querySelector('.mval').textContent = (curPlace / 1000).toFixed(2) + 'M';
-        metrics[1].querySelector('.mbadge').textContent = (pctChange >= 0 ? '▲ +' : '▼ ') + Math.abs(pctChange) + '% YoY';
-        metrics[1].querySelector('.mbadge').className = 'mbadge ' + (pctChange >= 0 ? 'b-grn' : 'b-red');
-      }
-      
-      // Marketings
-      if (mktByYear[2026]?.[lastPlaceMktIdx] && metrics[2]) {
-        const curMkt = mktByYear[2026][lastPlaceMktIdx];
-        const mkt25 = mktByYear[2025]?.[lastPlaceMktIdx] || histMarketings[2025][lastPlaceMktIdx];
-        const mktChange = ((curMkt - mkt25) / mkt25 * 100).toFixed(0);
-        metrics[2].querySelector('.mlabel').textContent = `Marketings ${MONTHS[lastPlaceMktIdx]} 2026`;
-        metrics[2].querySelector('.mval').textContent = (curMkt / 1000).toFixed(2) + 'M';
-        metrics[2].querySelector('.mbadge').textContent = (mktChange >= 0 ? '▲ +' : '▼ ') + Math.abs(mktChange) + '% YoY';
-        metrics[2].querySelector('.mbadge').className = 'mbadge ' + (mktChange >= 0 ? 'b-grn' : 'b-red');
-      }
-    }
-    
-  } catch(err) {
-    console.warn('⚠️ Fallo en inicialización en vivo:', err.message);
-    badge.textContent = '⚠ ERROR EN VIVO';
-    badge.style.color = 'var(--red)';
-    // Si falla la API, renderiza con los datos hardcodeados de respaldo
-    renderDashboard({2025: historical[2025]}, {}, {});
-  }
-  
-  setTimeout(() => location.reload(), 6 * 60 * 60 * 1000);
-})();
+  document.getElementById('t-mes').innerHTML = ht;
+
+  const C = D.comprobaciones;
+  document.getElementById('chk').innerHTML = [
+    `<b>Suma por pesos = total:</b> las seis franjas de peso suman exactamente las colocaciones totales en los ${C.pesos_meses} meses que traen desglose.`,
+    `<b>Balance de cabezas:</b> inventario del mes siguiente = inventario + colocaciones − ventas − otras bajas en ${C.balance_meses - C.balance_excepciones.length} de ${C.balance_meses} meses. La excepción (${C.balance_excepciones.join(', ')}) es una revisión del propio USDA.`,
+    `<b>Último informe contra una segunda fuente:</b> los % sobre el año anterior calculados desde la serie del USDA (inventario ${fmtP(C.yoy_ultimo.inventario)} %, colocaciones ${fmtP(C.yoy_ultimo.colocaciones)} %, ventas ${fmtP(C.yoy_ultimo.ventas)} %) son los mismos que publica Hightower.`,
+    `<b>Proyección medida:</b> se probó también la proyección con ratios estacionales de 5 años; desde 2002 falla más que la de mantener el % sobre el año anterior a 1, 2 y 3 meses. Por eso se usa esta, y la banda es su error real.`,
+    `Si alguna comprobación falla, el JSON no se genera y la página se queda con el informe anterior. Datos generados: ${D.generado}.`,
+  ].map(s => `<li>${s}</li>`).join('');
+  document.getElementById('footer').textContent =
+    `USDA NASS · Cattle on Feed · informe del ${fecha(D.ultimo_informe)} · Cebaderos ≥1.000 cab. · Solo orientativo, no es una recomendación`;
+}
+
+fetch('datos/cof.json', {cache:'no-cache'})
+  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(pintar)
+  .catch(e => { document.getElementById('main').insertAdjacentHTML('afterbegin',
+    `<div class="err">No se han podido cargar los datos (${e.message}).</div>`); });
 </script>
 </body>
 </html>
